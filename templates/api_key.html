@@ -1,0 +1,149 @@
+<html>
+<head>
+    <title>API Key</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 20px auto; 
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .api-key { 
+            background: #f8f9fa; 
+            padding: 15px; 
+            border-radius: 5px; 
+            font-family: monospace; 
+            word-break: break-all;
+            border: 2px solid #dee2e6;
+        }
+        .example { 
+            background: #e8f5e8; 
+            padding: 10px; 
+            border-radius: 5px; 
+            font-family: monospace; 
+            margin: 10px 0;
+        }
+        .back-link { 
+            display: inline-block; 
+            margin-top: 20px; 
+            color: #007bff; 
+            text-decoration: none;
+        }
+        .regenerate-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12.3px 20px;
+            color: white;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 5px;
+            background: linear-gradient(135deg, #38b2ff 0%, #3182ce 100%);
+            cursor: pointer;
+            transition: background 0.3s;
+            border: none;
+        }
+        .regenerate-btn:hover {
+            background: linear-gradient(135deg, #63b3ed 0%, #4299e1 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🔑 API Key</h2>
+        <p>Use this API key to access library endpoints:</p>
+        <div class="api-key">{{ api_key }}</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+    <!-- Left: Back to Admin -->
+    <a href="/admin" class="back-link">← Back to Admin</a>
+
+    <!-- Right: Regenerate API Key -->
+    <a href="#" class="regenerate-btn" 
+       onclick="if(confirm('Are you sure you want to regenerate the API key?')) { 
+                    fetch('{{ url_for('regenerate_api_key') }}', { 
+                        method: 'POST', 
+                        headers: { 'X-CSRFToken': '{{ csrf_token() }}' } 
+                    }).then(() => location.reload()); 
+                }">
+       🔄 Regenerate API Key
+    </a>
+</div>
+
+
+	
+        
+<h3>📋 Usage Examples:</h3>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+  <!-- Windows Column -->
+  <div>
+    <h4>🪟 Windows PowerShell</h4>
+
+    <p><strong>Get all library entries:</strong></p>
+    <div class="example">
+      curl -H "X-API-Key: {{ api_key }}" http://{{ server_ip }}/library
+    </div>
+
+    <p><strong>Get specific entry:</strong></p>
+    <div class="example">
+      curl -H "X-API-Key: {{ api_key }}" http://{{ server_ip }}/library/qr_id_here
+    </div>
+
+    <p><strong>Delete entry:</strong></p>
+    <div class="example">
+      curl -X DELETE -H "X-API-Key: {{ api_key }}" http://{{ server_ip }}/library/qr_id_here
+    </div>
+
+    <p><strong>Update password:</strong></p>
+    <div class="example">
+      curl -X POST -H "Content-Type: application/json" -H "X-API-Key: {{ api_key }}" -d "{\"password\":\"newpass\"}" http://{{ server_ip }}/update-password/update_id_here
+    </div>
+  </div>
+
+  <!-- Linux/macOS Column -->
+  <div>
+    <h4>🐧 Linux / macOS</h4>
+
+    <p><strong>Get all library entries:</strong></p>
+    <div class="example">
+      curl -H "X-API-Key: {{ api_key }}" http://{{ server_ip }}/library
+    </div>
+
+    <p><strong>Get specific entry:</strong></p>
+    <div class="example">
+      curl -H "X-API-Key: {{ api_key }}" http://{{ server_ip }}/library/qr_id_here
+    </div>
+
+
+    <p><strong>Delete entry:</strong></p>
+    <div class="example">
+      curl -X DELETE -H "X-API-Key: {{ api_key }}" http://{{ server_ip }}/library/qr_id_here
+    </div>
+
+
+
+    <p><strong>Update password:</strong></p>
+    <div class="example">
+      curl -X POST \
+        -H "Content-Type: application/json" \
+        -H "X-API-Key: {{ api_key }}" \
+        -d '{"password":"newpass"}' \
+        http://{{ server_ip }}/update-password/update_id_here
+    </div>
+  </div>
+</div>
+
+
+        
+		
+        
+    </div>
+</body>
+</html>

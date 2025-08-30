@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi QR Code - {{ entry.ssid }}</title>
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;           /* no scrollbars */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: white;
+}
+
+.qr-wrapper {
+    /* Shadow container with margin for side shadows */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3), 0 0 30px rgba(0,0,0,0.15);
+    border-radius: 20px;
+    margin: 30px;                /* margin keeps shadow visible on small screens */
+    max-width: 95vw;             /* shrink on small screens */
+}
+
+.qr-container {
+    background: white;
+    padding: 2vw;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.qr-image {
+    width: 100%;
+    max-width: 400px;
+    max-height: 70vh;
+    height: auto;
+    border: 2px solid #eee;
+    border-radius: 10px;
+    margin: 2vh 0;
+    object-fit: contain;
+}
+
+/* Responsive scaling for very small screens */
+@media (max-width: 480px) {
+    .qr-wrapper {
+        max-width: 90vw;
+        margin: 5px;  /* keep shadows visible */
+    }
+
+    .qr-container {
+        padding: 4vw;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    .network-info, .network-name {
+        font-size: 1em;
+    }
+
+    .refresh-info {
+        font-size: 0.8em;
+    }
+
+    .qr-image {
+        max-width: 80vw;
+        max-height: 60vh;
+    }
+}
+
+h1 {
+    color: #4a5568;
+    margin-bottom: 10px;
+    font-size: clamp(1.5em, 2vw, 2em);
+    word-break: break-word;
+}
+
+.network-info {
+    color: #718096;
+    margin-bottom: 20px;
+    font-size: clamp(1em, 1.5vw, 1.1em);
+    word-break: break-word;
+}
+
+.refresh-info {
+    color: #a0aec0;
+    font-size: clamp(0.8em, 1vw, 0.9em);
+    margin-top: 10px;
+}
+
+.network-name {
+    font-size: clamp(1em, 1.5vw, 1.2em);
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+    word-break: break-word;
+}
+</style>
+
+
+
+
+   
+        <script>
+            // Real-time update system using polling (better than 30s refresh)
+            let lastModified = 0;
+            const qrId = '{{ entry.qr_id if entry.qr_id else entry.id }}';
+            
+            function checkForUpdates() {
+                fetch(`/webhook/${qrId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.last_modified && data.last_modified > lastModified) {
+                            lastModified = data.last_modified;
+                            // Update QR code if changed
+                            const qrImg = document.querySelector('.qr-image');
+                            if (qrImg && data.qr_image) {
+                                qrImg.src = `data:image/png;base64,${data.qr_image}`;
+                            }
+                            // Update network name if changed
+                            const title = document.querySelector('h1');
+                            if (title && data.ssid) {
+                                title.textContent = `📶 ${data.ssid}`;
+                            }
+                            // Update security info
+                            const networkInfo = document.querySelector('.network-info');
+                            if (networkInfo && data.security) {
+                                let hiddenText = data.hidden ? '<br><strong>Hidden Network</strong>' : '';
+                                networkInfo.innerHTML = `<strong>Security:</strong> ${data.security}${hiddenText}`;
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.log('Update check failed:', error);
+                    });
+            }
+            
+            // Check for updates every 5 seconds
+            setInterval(checkForUpdates, 5000);
+            
+            // Initial check
+            setTimeout(checkForUpdates, 1000);
+        </script>
+</head>
+<body>
+<div class="qr-wrapper">
+    <div class="qr-container">
+        <h1>📶 {{ entry.ssid }}</h1>
+		<!--
+        <div class="network-info">
+            <strong>Security:</strong> {{ entry.security }}<br>
+            {% if entry.hidden %}<strong>Hidden Network</strong><br>{% endif %}
+        </div>
+		-->
+        <img src="data:image/png;base64,{{ entry.qr_image }}" alt="WiFi QR Code" class="qr-image">
+        <!--
+		<div class="refresh-info">
+            Updates automatically every 5 seconds
+        </div>
+		-->
+		
+    </div>
+</div>	
+</body>
+</html>

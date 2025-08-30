@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WiFi QR Code Generator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            
+
+			background: #f5f5f5;
+			min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+			 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        h1, h2 {
+            color: #4a5568;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        
+        input[type="text"], input[type="password"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+        
+        input[type="text"]:focus, input[type="password"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+            padding: 8px 15px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+        
+        .btn-edit {
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+            padding: 8px 15px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        
+        .qr-result {
+            text-align: center;
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 15px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .qr-image {
+            max-width: 256px;
+            margin: 15px auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .library-item {
+            border: 2px solid #e2e8f0;
+            padding: 25px;
+            margin: 15px 0;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #f9f9f9 0%, #f1f1f1 100%);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            align-items: start;
+        }
+        
+        .library-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        
+        .library-item-left {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .library-item-right {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        .library-item h3 {
+            margin-top: 0;
+            color: #4a5568;
+            font-size: 1.4em;
+        }
+        
+        .library-item-details {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .detail-item {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #718096;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        .detail-value {
+            color: #4a5568;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+        
+        .library-qr {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .library-qr img {
+            width: 200px;
+            height: 200px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+        
+        .qr-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .qr-link {
+            background: #f8f9fa;
+            color: #495057;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 12px;
+            border: 1px solid #dee2e6;
+            transition: background-color 0.2s ease;
+        }
+        
+        .qr-link:hover {
+            background: #e9ecef;
+            text-decoration: none;
+        }
+        
+        .actions {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .edit-form {
+            display: none;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+        
+        .edit-form.active {
+            display: block;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .alert-success {
+            background-color: #c6f6d5;
+            color: #2f855a;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .alert-error {
+            background-color: #fed7d7;
+            color: #c53030;
+            border: 1px solid #fc8181;
+        }
+        
+        @media (max-width: 768px) {
+            .library-item {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .library-item-right {
+                order: -1;
+            }
+        }
+        
+        .password-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .password-toggle {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .password-toggle:hover {
+            background: #5a67d8;
+        }
+        
+        .password-visible {
+            color: #e53e3e;
+            font-weight: 600;
+        }
+        
+        .update-api-info {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        
+        .update-api-info code {
+            background: #f7fafc;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+		.logout-container {
+			display: flex;
+			justify-content: flex-end; /* pushes content to the right */
+			margin-top: 20px; /* optional spacing from top */
+		}
+		
+		
+.top-bar {
+    display: flex;
+    justify-content: space-between; /* left/right alignment */
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Make right-side buttons a flex row so hover transform works */
+.top-bar > div {
+    display: flex;       /* horizontal layout */
+    align-items: center; /* vertical alignment */
+    gap: 5px;            /* space between buttons */
+}
+
+/* Ensure buttons can transform on hover */
+.logout-btn, .logout-btn.api-key {
+    display: inline-block; /* allows translateY to work */
+    transition: all 0.3s ease;
+}
+
+
+ /* 🔵 Top-bar QR Code / generic button */
+.top-bar .btn {
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #3182ce 0%, #38b2ff 100%);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 12px 18px;
+    box-shadow: 0 3px 8px rgba(49, 130, 206, 0.4);
+}
+
+.top-bar .btn:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, #4299e1 0%, #63b3ed 100%);
+    box-shadow: 0 5px 14px rgba(49, 130, 206, 0.55);
+}
+
+/* 🔴 Logout Button */
+.logout-btn {
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+    color: white;
+    padding: 10.75px 15px;
+    border: none;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    margin-left: 5px; 
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 8px rgba(229, 62, 62, 0.4);
+}
+
+.logout-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(229, 62, 62, 0.55);
+    text-decoration: none;
+    color: white;
+}
+
+/* 🟢 API Key Button */
+.logout-btn.api-key {
+    background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+    box-shadow: 0 3px 8px rgba(56, 161, 105, 0.4);
+}
+
+.logout-btn.api-key:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(56, 161, 105, 0.55);
+}
+
+/* 🔵 Edit / Delete Buttons (Library Table) */
+.btn-edit {
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #3182ce 0%, #38b2ff 100%);
+    color: white;
+    padding: 8px 12px;
+    margin-right: 5px;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(49, 130, 206, 0.4);
+}
+
+.btn-edit:hover {
+    transform: translateY(-1px);
+    background: linear-gradient(135deg, #4299e1 0%, #63b3ed 100%);
+    box-shadow: 0 5px 14px rgba(49, 130, 206, 0.55);
+}
+
+.btn-danger {
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+    color: white;
+    padding: 8px 12px;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(229, 62, 62, 0.4);
+}
+
+.btn-danger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(229, 62, 62, 0.55);
+}
+
+
+
+		
+		
+		
+		
+		
+		
+		
+		
+    </style>
+</head>
+<body>
+
+    
+    <div class="container">
+        <h1>📶 WiFi QR Generator</h1>
+        <!--
+		<p class="subtitle">Generate QR codes for easy WiFi sharing</p>
+        -->
+        <div id="alert-container"></div>
+        
+        <div class="form-group">
+            <label for="ssid">Network Name (SSID) *</label>
+            <input type="text" id="ssid" placeholder="Enter WiFi network name" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter WiFi password (leave blank for open networks)">
+        </div>
+        
+        <div class="form-group">
+            <label for="security">Security Type</label>
+            <select id="security">
+                <option value="WPA3">WPA3 (Recommended)</option>
+                <option value="WPA2">WPA2</option>
+                <option value="WPA">WPA</option>
+                <option value="WEP">WEP (Legacy)</option>
+                <option value="nopass">None (Open Network)</option>
+            </select>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="checkbox" id="hidden">
+            <label for="hidden">Hidden Network</label>
+        </div>
+        
+        <div class="alert alert-warning" id="hidden-warning" style="display:none; background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba;">
+            <strong>⚠️ Hidden Network Notice:</strong> Some devices may have trouble connecting to hidden networks via QR codes. If connection fails, try connecting manually first, then use the QR code, or temporarily make the network visible.
+        </div>
+        
+		
+		<div class="top-bar">
+		<!-- Left: Generate QR -->
+		<button class="btn" onclick="generateQR()">Generate QR Code</button>
+		
+		<!-- Right: Logout & API Key -->
+		<div>
+			<a href="/admin/api-key" class="logout-btn api-key">🔑 API Key</a>
+			<a href="/logout" class="logout-btn">🚪 Logout</a>
+		</div>
+		</div>
+
+		
+		
+		
+		
+		
+        <div id="qr-result"></div>
+    </div>
+    
+    <div class="container">
+        <h2>📚 QR Code Library</h2>
+        <div id="library-container">
+            {% for item in library %}
+            <div class="library-item" id="item-{{ item.id }}">
+                <div class="library-item-left">
+                    <h3>{{ item.ssid }}</h3>
+                    <div class="library-item-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Security</div>
+                            <div class="detail-value">{{ item.security }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Hidden</div>
+                            <div class="detail-value">{{ 'Yes' if item.hidden else 'No' }}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Password</div>
+                            <div class="detail-value">
+                                <div class="password-container">
+                                    <span class="password-text" id="password-{{ item.qr_id }}">
+                                        {{ '•••••••••' if item.password else 'No password' }}
+                                    </span>
+                                    {% if item.password %}
+                                    <button class="password-toggle" onclick="togglePassword('{{ item.qr_id }}', '{{ item.password }}')">Show</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    
+                    {% if item.update_id %}
+                    <div class="update-api-info">
+                        <strong>🔧 Password Update API:</strong><br>
+                        <code>POST /update-password/{{ item.update_id }}</code><br>
+                        <small>Body: {"password": "new_password"}</small><br>
+                        <!--
+						<small style="color: #666;">No API key needed for password updates</small>
+						-->
+                    </div>
+                    {% endif %}
+                    
+                    <div class="edit-form" id="edit-form-{{ item.qr_id }}">
+                    <div class="edit-form" id="edit-form-{{ item.qr_id }}">
+                        <h4>Edit Network: {{ item.ssid }}</h4>
+                        <div class="form-group">
+                            <label>Network Name (SSID) *</label>
+                            <input type="text" id="edit-ssid-{{ item.qr_id }}" value="{{ item.ssid }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="edit-password-{{ item.qr_id }}" value="{{ item.password }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Security Type</label>
+                            <select id="edit-security-{{ item.qr_id }}">
+                                <option value="WPA3" {{ 'selected' if item.security == 'WPA3' else '' }}>WPA3 (Recommended)</option>
+                                <option value="WPA2" {{ 'selected' if item.security == 'WPA2' else '' }}>WPA2</option>
+                                <option value="WPA" {{ 'selected' if item.security == 'WPA' else '' }}>WPA</option>
+                                <option value="WEP" {{ 'selected' if item.security == 'WEP' else '' }}>WEP (Legacy)</option>
+                                <option value="nopass" {{ 'selected' if item.security == 'nopass' else '' }}>None (Open Network)</option>
+                            </select>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="edit-hidden-{{ item.qr_id }}" {{ 'checked' if item.hidden else '' }}>
+                            <label>Hidden Network</label>
+                        </div>
+                        <button class="btn" onclick="saveEdit('{{ item.qr_id }}')">Save Changes</button>
+                        <button class="btn btn-danger" onclick="cancelEdit('{{ item.qr_id }}')">Cancel</button>
+                    </div>
+                </div>
+				</div>
+                
+                <div class="library-item-right">
+                    <div class="library-qr">
+                        <img src="data:image/png;base64,{{ item.qr_image }}" alt="QR Code for {{ item.ssid }}">
+                    </div>
+                    
+                    <div class="qr-links">
+                        <a href="/qr/{{ item.qr_id if item.qr_id else item.id }}" target="_blank" class="qr-link">🔗 Full Screen View</a>
+                        <a href="/embed/{{ item.embed_id if item.embed_id else item.id }}" target="_blank" class="qr-link">📱 Embed Link</a>
+                    </div>
+                    
+                    <div class="actions">
+                        <button class="btn btn-edit" onclick="editEntry('{{ item.qr_id }}')">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteEntry('{{ item.qr_id }}')">Delete</button>
+                    </div>
+                </div>
+				
+				
+            
+            
+        </div>
+		{% endfor %}
+    </div>
+
+    <script>
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Show/hide warning for hidden networks
+        document.getElementById('hidden').addEventListener('change', function() {
+            const warning = document.getElementById('hidden-warning');
+            if (this.checked) {
+                warning.style.display = 'block';
+            } else {
+                warning.style.display = 'none';
+            }
+        });
+        
+        function togglePassword(qrId, actualPassword) {
+            const passwordElement = document.getElementById(`password-${qrId}`);
+            const toggleButton = passwordElement.parentElement.querySelector('.password-toggle');
+            
+            if (passwordElement.textContent === '•••••••••') {
+                // Show password
+                passwordElement.textContent = actualPassword;
+                passwordElement.classList.add('password-visible');
+                toggleButton.textContent = 'Hide';
+                
+                // Auto-hide after 10 seconds
+                setTimeout(() => {
+                    if (passwordElement.classList.contains('password-visible')) {
+                        passwordElement.textContent = '•••••••••';
+                        passwordElement.classList.remove('password-visible');
+                        toggleButton.textContent = 'Show';
+                    }
+                }, 10000);
+            } else {
+                // Hide password
+                passwordElement.textContent = '•••••••••';
+                passwordElement.classList.remove('password-visible');
+                toggleButton.textContent = 'Show';
+            }
+        }
+
+        function generateQR() {
+            const ssid = document.getElementById('ssid').value.trim();
+            const password = document.getElementById('password').value;
+            const security = document.getElementById('security').value;
+            const hidden = document.getElementById('hidden').checked;
+            
+            if (!ssid) {
+                showAlert('Please enter a network name (SSID)', 'error');
+                return;
+            }
+            
+            const data = {
+                ssid: ssid,
+                password: password,
+                security: security,
+                hidden: hidden
+            };
+            
+            fetch('/wifi', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('qr-result').innerHTML = `
+                        <div class="qr-result">
+                            <h3>QR Code Generated Successfully!</h3>
+                            <img src="data:image/png;base64,${data.qr_image}" alt="WiFi QR Code" class="qr-image">
+                            <p><strong>Network:</strong> ${data.entry.ssid}</p>
+                            <p><strong>Security:</strong> ${data.entry.security}</p>
+                        </div>
+                    `;
+                    showAlert('QR Code generated and saved to library!');
+                    
+                    // Refresh the page to show the new entry in library
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    showAlert(data.error || 'Failed to generate QR code', 'error');
+                }
+            })
+            .catch(error => {
+                showAlert('Error: ' + error.message, 'error');
+            });
+        }
+        
+        function editEntry(qrId) {
+            const editForm = document.getElementById(`edit-form-${qrId}`);
+            editForm.classList.add('active');
+        }
+        
+        function cancelEdit(qrId) {
+            const editForm = document.getElementById(`edit-form-${qrId}`);
+            editForm.classList.remove('active');
+        }
+        
+        function saveEdit(qrId) {
+            const ssid = document.getElementById(`edit-ssid-${qrId}`).value.trim();
+            const password = document.getElementById(`edit-password-${qrId}`).value;
+            const security = document.getElementById(`edit-security-${qrId}`).value;
+            const hidden = document.getElementById(`edit-hidden-${qrId}`).checked;
+            
+            if (!ssid) {
+                showAlert('Please enter a network name (SSID)', 'error');
+                return;
+            }
+            
+            const data = {
+                ssid: ssid,
+                password: password,
+                security: security,
+                hidden: hidden
+            };
+            
+            fetch(`/wifi/${qrId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Entry updated successfully!');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    showAlert(data.error || 'Failed to update entry', 'error');
+                }
+            })
+            .catch(error => {
+                showAlert('Error: ' + error.message, 'error');
+            });
+        }
+        
+        function deleteEntry(qrId) {
+            if (confirm('Are you sure you want to delete this QR code?')) {
+                fetch(`/library/${qrId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-API-Key': 'admin_internal_access'  // Special admin access
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.querySelector(`[id*="${qrId}"]`).closest('.library-item').remove();
+                        showAlert('Entry deleted successfully!');
+                    } else {
+                        showAlert('Failed to delete entry', 'error');
+                    }
+                })
+                .catch(error => {
+                    showAlert('Error: ' + error.message, 'error');
+                });
+            }
+        }
+    </script>
+</body>
+</html>
