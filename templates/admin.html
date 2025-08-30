@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="csrf-token" content="{{ csrf_token() }}">
+
+	
+
     <title>WiFi QR Code Generator</title>
     <style>
         body {
@@ -234,20 +238,54 @@
             text-align: center;
             margin-top: 20px;
         }
-        
-        .edit-form {
-            display: none;
-            background: white;
-            border: 2px solid #667eea;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 15px;
-        }
-        
-        .edit-form.active {
-            display: block;
-        }
-        
+
+		
+		
+/* Dark semi-transparent overlay behind the modal */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0; /* top:0; bottom:0; left:0; right:0; */
+    background: rgba(0, 0, 0, 0.5); /* darker than before */
+    z-index: 900; /* just below the modal */
+}
+
+/* Modal itself */
+.edit-form {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    width: 350px; /* slightly larger */
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); /* darker and bigger shadow */
+    transition: all 0.3s ease;
+}
+
+/* Active states */
+.edit-form.active {
+    display: block;
+}
+
+.modal-overlay.active {
+    display: block;
+}
+
+
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
         .alert {
             padding: 15px;
             border-radius: 8px;
@@ -408,7 +446,7 @@
     border-radius: 6px;
     background: linear-gradient(135deg, #3182ce 0%, #38b2ff 100%);
     color: white;
-    padding: 8px 12px;
+    padding: 12px 12px;
     margin-right: 5px;
     cursor: pointer;
     box-shadow: 0 3px 8px rgba(49, 130, 206, 0.4);
@@ -427,7 +465,7 @@
     border-radius: 6px;
     background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
     color: white;
-    padding: 8px 12px;
+    padding: 12px 12px;
     cursor: pointer;
     box-shadow: 0 3px 8px rgba(229, 62, 62, 0.4);
 }
@@ -506,7 +544,9 @@
 		
 		
 		
-        <div id="qr-result"></div>
+        
+<div id="qr-result" style="display: none;"></div>
+
     </div>
     
     <div class="container">
@@ -552,7 +592,9 @@
                     </div>
                     {% endif %}
                     
-                    <div class="edit-form" id="edit-form-{{ item.qr_id }}">
+                    
+					
+					<div class="modal-overlay" id="overlay-{{ item.qr_id }}"></div>
                     <div class="edit-form" id="edit-form-{{ item.qr_id }}">
                         <h4>Edit Network: {{ item.ssid }}</h4>
                         <div class="form-group">
@@ -579,9 +621,9 @@
                         </div>
                         <button class="btn" onclick="saveEdit('{{ item.qr_id }}')">Save Changes</button>
                         <button class="btn btn-danger" onclick="cancelEdit('{{ item.qr_id }}')">Cancel</button>
-                    </div>
+                    </div>				
                 </div>
-				</div>
+				
                 
                 <div class="library-item-right">
                     <div class="library-qr">
@@ -606,179 +648,167 @@
 		{% endfor %}
     </div>
 
+ </div>
     <script>
-        function showAlert(message, type = 'success') {
-            const alertContainer = document.getElementById('alert-container');
-            const alert = document.createElement('div');
-            alert.className = `alert alert-${type}`;
-            alert.textContent = message;
-            alertContainer.appendChild(alert);
-            
-            setTimeout(() => {
-                alert.remove();
-            }, 5000);
-        }
+function getCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+}
 
-        // Show/hide warning for hidden networks
-        document.getElementById('hidden').addEventListener('change', function() {
-            const warning = document.getElementById('hidden-warning');
-            if (this.checked) {
-                warning.style.display = 'block';
-            } else {
-                warning.style.display = 'none';
-            }
-        });
-        
-        function togglePassword(qrId, actualPassword) {
-            const passwordElement = document.getElementById(`password-${qrId}`);
-            const toggleButton = passwordElement.parentElement.querySelector('.password-toggle');
-            
-            if (passwordElement.textContent === '•••••••••') {
-                // Show password
-                passwordElement.textContent = actualPassword;
-                passwordElement.classList.add('password-visible');
-                toggleButton.textContent = 'Hide';
-                
-                // Auto-hide after 10 seconds
-                setTimeout(() => {
-                    if (passwordElement.classList.contains('password-visible')) {
-                        passwordElement.textContent = '•••••••••';
-                        passwordElement.classList.remove('password-visible');
-                        toggleButton.textContent = 'Show';
-                    }
-                }, 10000);
-            } else {
-                // Hide password
-                passwordElement.textContent = '•••••••••';
-                passwordElement.classList.remove('password-visible');
-                toggleButton.textContent = 'Show';
-            }
-        }
+function showAlert(message, type = 'success') {
+    const alertContainer = document.getElementById('alert-container');
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type}`;
+    alert.textContent = message;
+    alertContainer.appendChild(alert);
 
-        function generateQR() {
-            const ssid = document.getElementById('ssid').value.trim();
-            const password = document.getElementById('password').value;
-            const security = document.getElementById('security').value;
-            const hidden = document.getElementById('hidden').checked;
-            
-            if (!ssid) {
-                showAlert('Please enter a network name (SSID)', 'error');
-                return;
+    setTimeout(() => alert.remove(), 5000);
+}
+
+	function openEditForm(qrId) {
+    document.getElementById(`edit-form-${qrId}`).classList.add('active');
+    document.getElementById(`overlay-${qrId}`).classList.add('active');
+}
+
+function closeEditForm(qrId) {
+    document.getElementById(`edit-form-${qrId}`).classList.remove('active');
+    document.getElementById(`overlay-${qrId}`).classList.remove('active');
+}
+
+
+// Toggle password visibility
+function togglePassword(qrId, actualPassword) {
+    const passwordEl = document.getElementById(`password-${qrId}`);
+    const toggleBtn = passwordEl.parentElement.querySelector('.password-toggle');
+    if (passwordEl.textContent === '•••••••••') {
+        passwordEl.textContent = actualPassword;
+        passwordEl.classList.add('password-visible');
+        toggleBtn.textContent = 'Hide';
+        setTimeout(() => {
+            if (passwordEl.classList.contains('password-visible')) {
+                passwordEl.textContent = '•••••••••';
+                passwordEl.classList.remove('password-visible');
+                toggleBtn.textContent = 'Show';
             }
-            
-            const data = {
-                ssid: ssid,
-                password: password,
-                security: security,
-                hidden: hidden
-            };
-            
-            fetch('/wifi', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('qr-result').innerHTML = `
-                        <div class="qr-result">
-                            <h3>QR Code Generated Successfully!</h3>
-                            <img src="data:image/png;base64,${data.qr_image}" alt="WiFi QR Code" class="qr-image">
-                            <p><strong>Network:</strong> ${data.entry.ssid}</p>
-                            <p><strong>Security:</strong> ${data.entry.security}</p>
-                        </div>
-                    `;
-                    showAlert('QR Code generated and saved to library!');
-                    
-                    // Refresh the page to show the new entry in library
-                    setTimeout(() => {
-                        location.reload();
-                    }, 2000);
-                } else {
-                    showAlert(data.error || 'Failed to generate QR code', 'error');
-                }
-            })
-            .catch(error => {
-                showAlert('Error: ' + error.message, 'error');
-            });
+        }, 10000);
+    } else {
+        passwordEl.textContent = '•••••••••';
+        passwordEl.classList.remove('password-visible');
+        toggleBtn.textContent = 'Show';
+    }
+}
+
+// Generate new QR
+function generateQR() {
+    const ssid = document.getElementById('ssid').value.trim();
+    const password = document.getElementById('password').value;
+    const security = document.getElementById('security').value;
+    const hidden = document.getElementById('hidden').checked;
+
+    if (!ssid) { showAlert('Please enter a network name (SSID)', 'error'); return; }
+
+    const data = { ssid, password, security, hidden };
+    const csrfToken = getCsrfToken();
+
+    fetch('/wifi', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify(data)
+    })
+    .then(async res => {
+        const ct = res.headers.get('content-type') || '';
+        if (ct.includes('application/json')) return res.json();
+        else throw new Error(`Server returned non-JSON:\n${await res.text()}`);
+    })
+    .then(data => {
+        if (data.success) {
+            document.getElementById('qr-result').innerHTML = `
+                <div class="qr-result">
+                    <h3>QR Code Generated Successfully!</h3>
+                    <img src="data:image/png;base64,${data.qr_image}" class="qr-image">
+                    <p><strong>Network:</strong> ${data.entry.ssid}</p>
+                    <p><strong>Security:</strong> ${data.entry.security}</p>
+                </div>`;
+            showAlert('QR Code generated and saved to library!');
+            setTimeout(() => location.reload(), 2000);
+        } else showAlert(data.error || 'Failed to generate QR code', 'error');
+    })
+    .catch(err => showAlert('Error: ' + err.message, 'error'));
+}
+
+
+function editEntry(qrId) {
+    const editForm = document.getElementById(`edit-form-${qrId}`);
+    editForm.classList.add('active');
+}
+
+function cancelEdit(qrId) {
+    const editForm = document.getElementById(`edit-form-${qrId}`);
+    editForm.classList.remove('active');
+}
+
+// Save edited entry
+function saveEdit(qrId) {
+    const ssid = document.getElementById(`edit-ssid-${qrId}`).value.trim();
+    const password = document.getElementById(`edit-password-${qrId}`).value;
+    const security = document.getElementById(`edit-security-${qrId}`).value;
+    const hidden = document.getElementById(`edit-hidden-${qrId}`).checked;
+
+    if (!ssid) { showAlert('Please enter a network name (SSID)', 'error'); return; }
+
+    const data = { ssid, password, security, hidden };
+    const csrfToken = getCsrfToken();
+
+    fetch(`/wifi/${qrId}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify(data)
+    })
+    .then(async res => {
+        const ct = res.headers.get('content-type') || '';
+        if (ct.includes('application/json')) return res.json();
+        else throw new Error(`Server returned non-JSON:\n${await res.text()}`);
+    })
+    .then(data => {
+        if (data.success) showAlert('Entry updated successfully!'), setTimeout(() => location.reload(), 1000);
+        else showAlert(data.error || 'Failed to update entry', 'error');
+    })
+    .catch(err => showAlert('Error: ' + err.message, 'error'));
+}
+
+// Delete entry
+function deleteEntry(qrId) {
+    if (!confirm('Are you sure you want to delete this QR code?')) return;
+
+    const csrfToken = getCsrfToken();
+
+    fetch(`/library/${qrId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
         }
-        
-        function editEntry(qrId) {
-            const editForm = document.getElementById(`edit-form-${qrId}`);
-            editForm.classList.add('active');
-        }
-        
-        function cancelEdit(qrId) {
-            const editForm = document.getElementById(`edit-form-${qrId}`);
-            editForm.classList.remove('active');
-        }
-        
-        function saveEdit(qrId) {
-            const ssid = document.getElementById(`edit-ssid-${qrId}`).value.trim();
-            const password = document.getElementById(`edit-password-${qrId}`).value;
-            const security = document.getElementById(`edit-security-${qrId}`).value;
-            const hidden = document.getElementById(`edit-hidden-${qrId}`).checked;
-            
-            if (!ssid) {
-                showAlert('Please enter a network name (SSID)', 'error');
-                return;
-            }
-            
-            const data = {
-                ssid: ssid,
-                password: password,
-                security: security,
-                hidden: hidden
-            };
-            
-            fetch(`/wifi/${qrId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showAlert('Entry updated successfully!');
-                    setTimeout(() => {
-                        location.reload();
-                    }, 1000);
-                } else {
-                    showAlert(data.error || 'Failed to update entry', 'error');
-                }
-            })
-            .catch(error => {
-                showAlert('Error: ' + error.message, 'error');
-            });
-        }
-        
-        function deleteEntry(qrId) {
-            if (confirm('Are you sure you want to delete this QR code?')) {
-                fetch(`/library/${qrId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-API-Key': 'admin_internal_access'  // Special admin access
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.querySelector(`[id*="${qrId}"]`).closest('.library-item').remove();
-                        showAlert('Entry deleted successfully!');
-                    } else {
-                        showAlert('Failed to delete entry', 'error');
-                    }
-                })
-                .catch(error => {
-                    showAlert('Error: ' + error.message, 'error');
-                });
-            }
-        }
-    </script>
+    })
+    .then(async res => {
+        const ct = res.headers.get('content-type') || '';
+        if (ct.includes('application/json')) return res.json();
+        else throw new Error(`Server returned non-JSON:\n${await res.text()}`);
+    })
+    .then(data => {
+        if (data.success) {
+            const elem = document.querySelector(`[id*="${qrId}"]`);
+            if (elem) elem.closest('.library-item').remove();
+            showAlert('Entry deleted successfully!');
+        } else showAlert(data.error || 'Failed to delete entry', 'error');
+    })
+    .catch(err => showAlert('Error: ' + err.message, 'error'));
+}
+</script>
+
 </body>
 </html>

@@ -1,12 +1,12 @@
-
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WiFi QR - {{ entry.ssid }}</title>
-<style>
-    html, body {
+    <style>
+      html,
+      body {
         margin: 0;
         padding: 0;
         height: 100%;
@@ -18,71 +18,76 @@
         justify-content: center;
         align-items: center;
         background: white;
-    }
+      }
 
-    .qr-image {
-        max-width: 90vw;  /* scale to viewport width */
+      .qr-image {
+        max-width: 90vw; /* scale to viewport width */
         max-height: 90vh; /* scale to viewport height */
         width: auto;
         height: auto;
         border: 2px solid #eee;
         border-radius: 8px;
-    }
+      }
 
-    .network-name {
+      .network-name {
         font-size: 1.2em;
         font-weight: bold;
         margin-bottom: 10px;
         color: #333;
-    }
-</style>
+      }
+    </style>
 
     <script>
-            // Real-time update system using polling (better than 30s refresh)
-            let lastModified = 0;
-            const qrId = '{{ entry.qr_id if entry.qr_id else entry.id }}';
-            
-            function checkForUpdates() {
-                fetch(`/webhook/${qrId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.last_modified && data.last_modified > lastModified) {
-                            lastModified = data.last_modified;
-                            // Update QR code if changed
-                            const qrImg = document.querySelector('.qr-image');
-                            if (qrImg && data.qr_image) {
-                                qrImg.src = `data:image/png;base64,${data.qr_image}`;
-                            }
-                            // Update network name if changed
-                            const title = document.querySelector('h1');
-                            if (title && data.ssid) {
-                                title.textContent = `📶 ${data.ssid}`;
-                            }
-                            // Update security info
-                            const networkInfo = document.querySelector('.network-info');
-                            if (networkInfo && data.security) {
-                                let hiddenText = data.hidden ? '<br><strong>Hidden Network</strong>' : '';
-                                networkInfo.innerHTML = `<strong>Security:</strong> ${data.security}${hiddenText}`;
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.log('Update check failed:', error);
-                    });
+      // Real-time update system using polling (better than 30s refresh)
+      let lastModified = 0;
+      const qrId = "{{ entry.qr_id if entry.qr_id else entry.id }}";
+
+      function checkForUpdates() {
+        fetch(`/webhook/${qrId}`)
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.last_modified && data.last_modified > lastModified) {
+              lastModified = data.last_modified;
+              // Update QR code if changed
+              const qrImg = document.querySelector(".qr-image");
+              if (qrImg && data.qr_image) {
+                qrImg.src = `data:image/png;base64,${data.qr_image}`;
+              }
+              // Update network name if changed
+              const title = document.querySelector("h1");
+              if (title && data.ssid) {
+                title.textContent = `📶 ${data.ssid}`;
+              }
+              // Update security info
+              const networkInfo = document.querySelector(".network-info");
+              if (networkInfo && data.security) {
+                let hiddenText = data.hidden
+                  ? "<br><strong>Hidden Network</strong>"
+                  : "";
+                networkInfo.innerHTML = `<strong>Security:</strong> ${data.security}${hiddenText}`;
+              }
             }
-            
-            // Check for updates every 5 seconds
-            setInterval(checkForUpdates, 5000);
-            
-            // Initial check
-            setTimeout(checkForUpdates, 1000);
-        </script>
-		
-</head>
-<body>
-<!--
+          })
+          .catch((error) => {
+            console.log("Update check failed:", error);
+          });
+      }
+
+      // Check for updates every 5 seconds
+      setInterval(checkForUpdates, 5000);
+
+      // Initial check
+      setTimeout(checkForUpdates, 1000);
+    </script>
+  </head>
+  <body>
+    <!--
     <div class="network-name">{{ entry.ssid }}</div>
 	-->
-    <img src="data:image/png;base64,{{ entry.qr_image }}" alt="WiFi QR Code" class="qr-image">
-</body>
+    <img
+      src="data:image/png;base64,{{ entry.qr_image }}"
+      alt="WiFi QR Code"
+      class="qr-image"
+    />
+  </body>
 </html>
