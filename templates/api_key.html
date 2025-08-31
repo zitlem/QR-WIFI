@@ -90,63 +90,38 @@
 
       <h3>📋 Usage Examples:</h3>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px">
-        <!-- Windows Column -->
-        <div>
-          <h4>🪟 Windows PowerShell</h4>
+      <div style="display: grid; grid-template-columns: 1fr; gap: 20px">
+        <h4>🐧🪟 Linux / macOS / Windows PowerShell</h4>
 
-          <p><strong>Get all library entries:</strong></p>
-          <div class="example">
-            curl -H "X-API-Key: {{ api_key }}" http://{{ server_ip }}/library
-          </div>
-
-          <p><strong>Get specific entry:</strong></p>
-          <div class="example">
-            curl -H "X-API-Key: {{ api_key }}" http://{{ server_ip
-            }}/library/qr_id_here
-          </div>
-
-          <p><strong>Delete entry:</strong></p>
-          <div class="example">
-            curl -X DELETE -H "X-API-Key: {{ api_key }}" http://{{ server_ip
-            }}/library/qr_id_here
-          </div>
-
-          <p><strong>Update password:</strong></p>
-          <div class="example">
-            curl -X POST -H "Content-Type: application/json" -H "X-API-Key: {{
-            api_key }}" -d "{\"password\":\"newpass\"}" http://{{ server_ip
-            }}/update-password/update_id_here
-          </div>
+        <p><strong>Get all library entries:</strong></p>
+        <div class="example">
+          curl -H "X-API-Key: {{ api_key }}" http://{{ server_ip }}/library
         </div>
 
-        <!-- Linux/macOS Column -->
-        <div>
-          <h4>🐧 Linux / macOS</h4>
+        <p><strong>Get specific entry:</strong></p>
+        <div class="example">
+          curl -H "X-API-Key: {{ api_key }}" http://{{ server_ip
+          }}/library/qr_id_here
+        </div>
 
-          <p><strong>Get all library entries:</strong></p>
-          <div class="example">
-            curl -H "X-API-Key: {{ api_key }}" http://{{ server_ip }}/library
-          </div>
+        <p><strong>Delete entry:</strong></p>
+        <div class="example">
+          curl -X DELETE -H "X-API-Key: {{ api_key }}" http://{{ server_ip
+          }}/library/qr_id_here
+        </div>
 
-          <p><strong>Get specific entry:</strong></p>
-          <div class="example">
-            curl -H "X-API-Key: {{ api_key }}" http://{{ server_ip
-            }}/library/qr_id_here
-          </div>
+        <p><strong>Update password: 🪟 Windows PowerShell</strong></p>
+        <div class="example">
+          curl -X POST -H "Content-Type: application/json" -H "X-API-Key: {{
+          api_key }}" -d "{\"password\":\"newpass\"}" http://{{ server_ip
+          }}/update-password/update_id_here
+        </div>
 
-          <p><strong>Delete entry:</strong></p>
-          <div class="example">
-            curl -X DELETE -H "X-API-Key: {{ api_key }}" http://{{ server_ip
-            }}/library/qr_id_here
-          </div>
-
-          <p><strong>Update password:</strong></p>
-          <div class="example">
-            curl -X POST \ -H "Content-Type: application/json" \ -H "X-API-Key:
-            {{ api_key }}" \ -d '{"password":"newpass"}' \ http://{{ server_ip
-            }}/update-password/update_id_here
-          </div>
+        <p><strong>Update password: 🐧 Linux / macOS /</strong></p>
+        <div class="example">
+          curl -X POST \ -H "Content-Type: application/json" \ -H "X-API-Key: {{
+          api_key }}" \ -d '{"password":"newpass"}' \ http://{{ server_ip
+          }}/update-password/update_id_here
         </div>
       </div>
     </div>
