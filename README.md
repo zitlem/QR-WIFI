@@ -2,6 +2,8 @@
 
 A Flask-based web application that generates QR codes for WiFi networks with a user-friendly admin interface and REST API.
 
+![Screenshot](https://raw.githubusercontent.com/zitlem/QR-WIFI/master/Sample.jpg)
+
 ## Features
 
 - **Web Interface**: Clean, responsive admin panel for generating and managing WiFi QR codes
