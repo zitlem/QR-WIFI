@@ -12,7 +12,7 @@
         max-width: 800px;
         margin: 20px auto;
         padding: 20px;
-
+        min-width: 400px;
         background: #f5f5f5;
         min-height: 100vh;
         color: #333;
@@ -245,9 +245,12 @@
       .modal-overlay {
         display: none;
         position: fixed;
-        inset: 0; /* top:0; bottom:0; left:0; right:0; */
-        background: rgba(0, 0, 0, 0.5); /* darker than before */
-        z-index: 900; /* just below the modal */
+        inset: 0;
+        /* top:0; bottom:0; left:0; right:0; */
+        background: rgba(0, 0, 0, 0.5);
+        /* darker than before */
+        z-index: 900;
+        /* just below the modal */
       }
 
       /* Modal itself */
@@ -261,8 +264,10 @@
         background: white;
         border-radius: 12px;
         padding: 25px;
-        width: 350px; /* slightly larger */
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6); /* darker and bigger shadow */
+        width: 350px;
+        /* slightly larger */
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        /* darker and bigger shadow */
         transition: all 0.3s ease;
       }
 
@@ -295,11 +300,13 @@
 
       @media (max-width: 550px) {
         body {
-          font-size: 14px; /* Reduce base font size */
+          font-size: 14px;
+          /* Reduce base font size */
         }
 
         h1 {
-          font-size: 1.8em; /* Shrink big headers */
+          font-size: 1.8em;
+          /* Shrink big headers */
         }
 
         h2 {
@@ -309,26 +316,31 @@
         .btn,
         .logout-btn,
         .logout-btn.api-key {
-          font-size: 12px; /* Smaller button text */
+          font-size: 12px;
+          /* Smaller button text */
         }
 
         .top-bar {
-          flex-direction: column; /* Stack buttons vertically */
+          flex-direction: column;
+          /* Stack buttons vertically */
           gap: 10px;
         }
 
         .top-bar > div {
-          flex-direction: row; /* Keep logout/API buttons side by side */
+          flex-direction: row;
+          /* Keep logout/API buttons side by side */
         }
       }
 
-      (max-width: 768px) {
+      @media (max-width: 650px) {
         .library-item {
           grid-template-columns: 1fr;
-          gap: 15px;
+          /* Force one column */
         }
+
         .library-item-right {
           order: -1;
+          /* Move QR above details */
         }
       }
 
@@ -374,30 +386,38 @@
         border-radius: 3px;
         font-family: monospace;
       }
+
       .logout-container {
         display: flex;
-        justify-content: flex-end; /* pushes content to the right */
-        margin-top: 20px; /* optional spacing from top */
+        justify-content: flex-end;
+        /* pushes content to the right */
+        margin-top: 20px;
+        /* optional spacing from top */
       }
 
       .top-bar {
         display: flex;
-        justify-content: space-between; /* left/right alignment */
+        justify-content: space-between;
+        /* left/right alignment */
         align-items: center;
         margin-bottom: 10px;
       }
 
       /* Make right-side buttons a flex row so hover transform works */
       .top-bar > div {
-        display: flex; /* horizontal layout */
-        align-items: center; /* vertical alignment */
-        gap: 5px; /* space between buttons */
+        display: flex;
+        /* horizontal layout */
+        align-items: center;
+        /* vertical alignment */
+        gap: 5px;
+        /* space between buttons */
       }
 
       /* Ensure buttons can transform on hover */
       .logout-btn,
       .logout-btn.api-key {
-        display: inline-block; /* allows translateY to work */
+        display: inline-block;
+        /* allows translateY to work */
         transition: all 0.3s ease;
       }
 
