@@ -86,23 +86,37 @@ def require_api_key(f):
 
 
 def require_api_key_or_csrf(view_func):
+    @wraps(view_func)
     def wrapper(*args, **kwargs):
-        # 1️⃣ Check API key first
+        # 1️⃣ Check API key first - only if non-empty
         api_key = request.headers.get("X-API-Key")
-        if api_key == API_KEY:
-            return view_func(*args, **kwargs)
 
-        # 2️⃣ For web requests, check CSRF
+        # Log to both console and file
+        debug_msg = f"DEBUG: Received API key: '{api_key}', Expected: '{API_KEY}', Match: {api_key == API_KEY}"
+        print(debug_msg)
+
+        with open("qr_api_debug.log", "a") as f:
+            f.write(f"{datetime.now()}: {debug_msg}\n")
+
+        if api_key and api_key.strip():  # Only check if API key is provided and not empty
+            if api_key == API_KEY:
+                print("DEBUG: API key validated, proceeding")
+                return view_func(*args, **kwargs)
+            else:
+                print("DEBUG: API key mismatch, returning 401")
+                return jsonify({"error": "Invalid API key"}), 401
+
+        # 2️⃣ For web requests without API key, check CSRF
+        print("DEBUG: No API key provided, checking CSRF")
         csrf_token = request.headers.get("X-CSRFToken")
         try:
             validate_csrf(csrf_token)
         except (ValidationError, CSRFError):
             # Return JSON instead of HTML
-            return jsonify({"error": "CSRF validation failed"}), 400
+            return jsonify({"error": "400 Bad Request: The CSRF token is missing."}), 400
 
         return view_func(*args, **kwargs)
 
-    wrapper.__name__ = view_func.__name__
     return wrapper
 
 
@@ -337,7 +351,8 @@ def generate_wifi_qr():
 
 
 @app.route("/wifi/<qr_id>", methods=["PUT"])
-@require_api_key_or_csrf
+@csrf.exempt
+@require_api_key
 def update_wifi_qr(qr_id):
     """Update existing WiFi QR code using qr_id"""
     try:
@@ -450,6 +465,7 @@ csrf.exempt(update_password_only)
 
 
 @app.route("/library")
+@csrf.exempt
 @require_api_key
 def get_library():
     """Get all QR codes from library (API key required)"""
