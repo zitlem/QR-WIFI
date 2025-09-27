@@ -85,6 +85,18 @@ def require_api_key(f):
     return decorated_function
 
 
+def require_csrf_token(f):
+    """Simple CSRF validation for web interface"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        csrf_token = request.headers.get("X-CSRFToken")
+        try:
+            validate_csrf(csrf_token)
+        except (ValidationError, CSRFError):
+            return jsonify({"error": "400 Bad Request: The CSRF token is missing."}), 400
+        return f(*args, **kwargs)
+    return decorated_function
+
 def require_api_key_or_csrf(view_func):
     @wraps(view_func)
     def wrapper(*args, **kwargs):
@@ -118,32 +130,6 @@ def require_api_key_or_csrf(view_func):
         return view_func(*args, **kwargs)
 
     return wrapper
-
-
-def require_api_key(f):
-    """Decorator to require API key from headers or query string"""
-
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        # First check header
-        api_key = request.headers.get("X-API-Key")
-
-        # If not found, try query string
-        if not api_key:
-            api_key = request.args.get("api_key")
-
-        # Special case: admin_internal_access
-        if api_key == "admin_internal_access":
-            auth = request.authorization
-            if not auth or auth.username != "admin" or auth.password != "qr12345":
-                return jsonify({"error": "Invalid admin credentials"}), 401
-
-        elif api_key != API_KEY:
-            return jsonify({"error": "Invalid or missing API key"}), 401
-
-        return f(*args, **kwargs)
-
-    return decorated_function
 
 
 def load_library():
@@ -210,6 +196,20 @@ def create_qr_code(data):
     qr.make(fit=True)
 
     img = qr.make_image(fill_color="black", back_color="white")
+
+    # Convert to RGBA and make white pixels transparent
+    img = img.convert("RGBA")
+    data = img.getdata()
+
+    new_data = []
+    for item in data:
+        # Make white pixels transparent
+        if item[0] == 255 and item[1] == 255 and item[2] == 255:
+            new_data.append((255, 255, 255, 0))  # Transparent
+        else:
+            new_data.append(item)
+
+    img.putdata(new_data)
 
     # Convert to base64 for web display
     buffered = BytesIO()
@@ -292,6 +292,7 @@ def logout():
 
 
 @app.route("/wifi", methods=["POST"])
+@csrf.exempt
 @require_api_key_or_csrf
 def generate_wifi_qr():
     """Generate WiFi QR code"""
@@ -352,7 +353,7 @@ def generate_wifi_qr():
 
 @app.route("/wifi/<qr_id>", methods=["PUT"])
 @csrf.exempt
-@require_api_key
+@require_api_key_or_csrf
 def update_wifi_qr(qr_id):
     """Update existing WiFi QR code using qr_id"""
     try:
@@ -412,6 +413,7 @@ def update_wifi_qr(qr_id):
 
 
 @app.route("/update-password/<update_id>", methods=["POST"])
+@csrf.exempt
 @require_api_key
 def update_password_only(update_id):
     """API to update only the WiFi password using update_id"""
@@ -461,7 +463,6 @@ def update_password_only(update_id):
         return jsonify({"error": str(e)}), 500
 
 
-csrf.exempt(update_password_only)
 
 
 @app.route("/library")
@@ -517,7 +518,6 @@ def delete_library_entry(qr_id):
         return jsonify({"error": "Entry not found"}), 404
 
 
-csrf.exempt(delete_library_entry)
 
 
 @app.route("/qr/<qr_id>")

@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WiFi QR - {{ entry.ssid }}</title>
     <style>
+      :root {
+        --bg-color: transparent;
+        --text-color: #333;
+        --qr-filter: none;
+      }
+
+      [data-theme="dark"] {
+        --bg-color: #000000;
+        --text-color: #ffffff;
+        --qr-filter: invert(1) hue-rotate(180deg);
+      }
+
       html,
       body {
         margin: 0;
@@ -17,7 +29,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        background: white;
+        background: var(--bg-color);
       }
 
       .qr-image {
@@ -25,19 +37,32 @@
         max-height: 90vh; /* scale to viewport height */
         width: auto;
         height: auto;
-        border: 2px solid #eee;
+        border: none;
         border-radius: 8px;
+        filter: var(--qr-filter);
       }
 
       .network-name {
         font-size: 1.2em;
         font-weight: bold;
         margin-bottom: 10px;
-        color: #333;
+        color: var(--text-color);
       }
     </style>
 
     <script>
+      // Theme detection from URL parameter
+      function initTheme() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const theme = urlParams.get('theme');
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      }
+
+      // Initialize theme on page load
+      initTheme();
+
       // Real-time update system using polling (better than 30s refresh)
       let lastModified = 0;
       const qrId = "{{ entry.qr_id if entry.qr_id else entry.id }}";

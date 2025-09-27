@@ -5,6 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>WiFi QR Code - {{ entry.ssid }}</title>
     <style>
+      :root {
+        --bg-color: transparent;
+        --text-color: #4a5568;
+        --text-secondary: #718096;
+        --text-muted: #a0aec0;
+        --network-name-color: #333;
+        --shadow-color: rgba(0, 0, 0, 0.3);
+        --shadow-light: rgba(0, 0, 0, 0.15);
+        --qr-filter: none;
+        --container-bg: transparent;
+      }
+
+      [data-theme="dark"] {
+        --bg-color: #000000;
+        --text-color: #000000;
+        --text-secondary: #333333;
+        --text-muted: #666666;
+        --network-name-color: #000000;
+        --shadow-color: rgba(255, 255, 255, 0.4);
+        --shadow-light: rgba(255, 255, 255, 0.2);
+        --qr-filter: none;
+        --container-bg: rgba(255, 255, 255, 0.9);
+      }
+
       html,
       body {
         margin: 0;
@@ -15,19 +39,20 @@
         justify-content: center;
         align-items: center;
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: white;
+        background: var(--bg-color);
       }
 
       .qr-wrapper {
         /* Shadow container with margin for side shadows */
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 0 30px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 8px 20px var(--shadow-color), 0 0 30px var(--shadow-light);
         border-radius: 20px;
-        margin: 30px; /* margin keeps shadow visible on small screens */
+        margin: 40px; /* larger margin to accommodate shadows in iframe */
         max-width: 95vw; /* shrink on small screens */
+        max-height: calc(100vh - 80px); /* ensure wrapper fits in viewport with margin space */
       }
 
       .qr-container {
-        background: white;
+        background: var(--container-bg);
         padding: 2vw;
         border-radius: 20px;
         display: flex;
@@ -41,17 +66,39 @@
         max-width: 400px;
         max-height: 70vh;
         height: auto;
-        border: 2px solid #eee;
+        border: none;
         border-radius: 10px;
-        margin: 2vh 0;
+        margin: 2vw 0 3vw 0; /* extra bottom margin for better visual balance */
         object-fit: contain;
+        box-sizing: border-box;
+        filter: var(--qr-filter);
+      }
+
+      /* Responsive scaling for short viewports */
+      @media (max-height: 400px) {
+        .qr-wrapper {
+          margin: 20px; /* reduced margin for short iframes */
+          max-height: calc(100vh - 40px); /* fit within short viewport */
+        }
+
+        .qr-container {
+          padding: 1vw; /* reduced padding */
+          height: calc(100vh - 60px); /* constrain container height */
+          box-sizing: border-box;
+        }
+
+        .qr-image {
+          max-height: calc(100vh - 100px); /* ensure QR fits in container */
+          max-width: 90%;
+          margin: 1vw 0 1vw 0; /* reduced margin for short viewports */
+        }
       }
 
       /* Responsive scaling for very small screens */
       @media (max-width: 480px) {
         .qr-wrapper {
           max-width: 90vw;
-          margin: 30px; /* keep shadows visible */
+          margin: 35px;  /* larger margin for small screens to fit shadows */
         }
 
         .qr-container {
@@ -78,21 +125,26 @@
       }
 
       h1 {
-        color: #4a5568;
+        color: var(--text-color);
         margin-bottom: 10px;
-        font-size: clamp(1.5em, 2vw, 2em);
+        font-size: 2em;
+        font-family: Arial, sans-serif;
         word-break: break-word;
+        text-align: center;
+        line-height: 1.2;
+        max-width: 100%;
+        overflow-wrap: break-word;
       }
 
       .network-info {
-        color: #718096;
+        color: var(--text-secondary);
         margin-bottom: 20px;
         font-size: clamp(1em, 1.5vw, 1.1em);
         word-break: break-word;
       }
 
       .refresh-info {
-        color: #a0aec0;
+        color: var(--text-muted);
         font-size: clamp(0.8em, 1vw, 0.9em);
         margin-top: 10px;
       }
@@ -101,12 +153,24 @@
         font-size: clamp(1em, 1.5vw, 1.2em);
         font-weight: bold;
         margin-bottom: 10px;
-        color: #333;
+        color: var(--network-name-color);
         word-break: break-word;
       }
     </style>
 
     <script>
+      // Theme detection from URL parameter
+      function initTheme() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const theme = urlParams.get('theme');
+        if (theme === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      }
+
+      // Initialize theme on page load
+      initTheme();
+
       // Real-time update system using polling (better than 30s refresh)
       let lastModified = 0;
       const qrId = "{{ entry.qr_id if entry.qr_id else entry.id }}";
@@ -125,7 +189,8 @@
               // Update network name if changed
               const title = document.querySelector("h1");
               if (title && data.ssid) {
-                title.textContent = `📶 ${data.ssid}`;
+                //title.textContent = `📶 ${data.ssid}`;
+				title.textContent = `${data.ssid}`;
               }
               // Update security info
               const networkInfo = document.querySelector(".network-info");
