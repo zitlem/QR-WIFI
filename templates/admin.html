@@ -696,6 +696,18 @@
                 >🌙 Full Screen (Dark)</a
               >
               <a
+                href="/qr/{{ item.qr_id if item.qr_id else item.id }}?shadow=none"
+                target="_blank"
+                class="qr-link"
+                >⬜ No Shadow (Light)</a
+              >
+              <a
+                href="/qr/{{ item.qr_id if item.qr_id else item.id }}?theme=dark&shadow=none"
+                target="_blank"
+                class="qr-link dark-theme"
+                >🌙 No Shadow (Dark)</a
+              >
+              <a
                 href="/embed/{{ item.embed_id if item.embed_id else item.id }}"
                 target="_blank"
                 class="qr-link"
